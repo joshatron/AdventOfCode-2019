@@ -1,12 +1,13 @@
 (ns aoc-2019.core
-  (:require [aoc-2019.day1 :as d1p1])
+  (:require [aoc-2019.day1 :as d1])
+  (:require [aoc-2019.day2 :as d2])
   (:gen-class))
 
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (print "Day 1 puzzle 1: ")
-  (println (d1p1/puzzle1 (slurp "./day1-input.txt")))
-  (print "Day 1 puzzle 2: ")
-  (println (d1p1/puzzle2 (slurp "./day1-input.txt")))
-  )
+  (println "Day 1 puzzle 1:" (d1/puzzle1 (slurp "./day1-input.txt")))
+  (println "Day 1 puzzle 2:" (d1/puzzle2 (slurp "./day1-input.txt")))
+  (println "Day 2 puzzle 1:" (d2/puzzle1 (slurp "./day2-input.txt")))
+  (println "Day 2 puzzle 2:" (d2/puzzle2 (slurp "./day2-input.txt")))
+)
