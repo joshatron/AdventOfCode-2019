@@ -12,4 +12,5 @@
   (println "Day 2 puzzle 1:" (d2/puzzle1 (slurp "./day2-input.txt")))
   (println "Day 2 puzzle 2:" (d2/puzzle2 (slurp "./day2-input.txt")))
   (println "Day 3 puzzle 1:" (d3/puzzle1 (slurp "./day3-input.txt")))
+  (println "Day 3 puzzle 2:" (d3/puzzle2 (slurp "./day3-input.txt")))
 )
