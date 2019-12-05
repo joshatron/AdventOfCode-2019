@@ -46,12 +46,11 @@
 
 (defn- identicalAdjacentOnlyTwo
   [numberString]
-  (let [matching (getMatchingFromBeginning numberString 0)]
+  (let [matching (getMatchingFromBeginning numberString 1)]
     (cond
       (= matching 2) true
-      (> matching 2) false
-      (= (count numberString) 1) false
-      :else (recur (subs numberString 1)))))
+      (= (count numberString) matching) false
+      :else (recur (subs numberString matching)))))
 
 (defn- legalNumberPuzzle2
   [number]
