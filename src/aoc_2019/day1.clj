@@ -1,5 +1,5 @@
 (ns aoc-2019.day1
-  (:require [aoc-2019.utils :as utils]))
+  (:require [clojure.string :as str]))
 
 (defn- calculateFuelForMass
   "Calculate answer for one input"
@@ -13,12 +13,20 @@
     (reduce +
             (next (take-while #(not= 0 %) masses)))))
 
+
+(defn sumInputs
+  "Calulates output for each input and sums the result"
+  [inputs algorithm]
+  (reduce +
+          (map #(algorithm (Integer. %))
+               (str/split inputs #"\n"))))
+
 (defn puzzle1
   "Main function to get output from inputs for day 1 puzzle 1"
   [inputs]
-  (utils/sumInputs inputs calculateFuelForMass))
+  (sumInputs inputs calculateFuelForMass))
 
 (defn puzzle2
   "Main function to get output from inputs for day 1 puzzle 2"
   [inputs]
-  (utils/sumInputs inputs calculateFuelForMassRecursive))
+  (sumInputs inputs calculateFuelForMassRecursive))
