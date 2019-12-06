@@ -8,4 +8,4 @@
 
 (defn puzzle2
   [input]
-  (ic/getProgramOutput (mapv #(Integer. %) (str/split input #",")) [1] [] 0))
+  (first (ic/getProgramOutput (mapv #(Integer. %) (str/split input #",")) [5] [] 0)))

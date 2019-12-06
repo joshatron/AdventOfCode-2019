@@ -33,6 +33,22 @@
     (get program (+ startAddress 1))
     input))
 
+(defn- processLessThan
+  [program startAddress firstType secondType]
+    (assoc program
+      (get program (+ startAddress 3))
+      (if (< (getAddressOrValue program (+ startAddress 1) firstType) (getAddressOrValue program (+ startAddress 2) secondType))
+        1
+        0)))
+
+(defn- processEqual
+  [program startAddress firstType secondType]
+  (assoc program
+    (get program (+ startAddress 3))
+    (if (= (getAddressOrValue program (+ startAddress 1) firstType) (getAddressOrValue program (+ startAddress 2) secondType))
+      1
+      0)))
+
 (defn getFinalProgramState
   [program address]
   (let [op (get program address)]
@@ -58,4 +74,12 @@
       (= (:op op) 1) (recur (processAdd program address (:first op) (:second op)) inputs outputs (+ address 4))
       (= (:op op) 2) (recur (processMultiply program address (:first op) (:second op)) inputs outputs (+ address 4))
       (= (:op op) 3) (recur (processGetInput program address (first inputs)) (rest inputs) outputs (+ address 2))
-      (= (:op op) 4) (recur program inputs (conj outputs (getAddressOrValue program (+ address 1) (:first op))) (+ address 2)))))
+      (= (:op op) 4) (recur program inputs (conj outputs (getAddressOrValue program (+ address 1) (:first op))) (+ address 2))
+      (= (:op op) 5) (recur program inputs outputs (if (not= (getAddressOrValue program (+ address 1) (:first op)) 0)
+                                                     (getAddressOrValue program (+ address 2) (:second op))
+                                                     (+ address 3)))
+      (= (:op op) 6) (recur program inputs outputs (if (= (getAddressOrValue program (+ address 1) (:first op)) 0)
+                                                     (getAddressOrValue program (+ address 2) (:second op))
+                                                     (+ address 3)))
+      (= (:op op) 7) (recur (processLessThan program address (:first op) (:second op)) inputs outputs (+ address 4))
+      (= (:op op) 8) (recur (processEqual program address (:first op) (:second op)) inputs outputs (+ address 4)))))
