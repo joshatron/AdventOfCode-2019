@@ -4,6 +4,7 @@
   (:require [aoc-2019.day3 :as d3])
   (:require [aoc-2019.day4 :as d4])
   (:require [aoc-2019.day5 :as d5])
+  (:require [aoc-2019.day6 :as d6])
   (:gen-class))
 
 (defn -main
@@ -19,4 +20,6 @@
   (println "Day 4 puzzle 2:" (d4/puzzle2 (slurp "./day4-input.txt")))
   (println "Day 5 puzzle 1:" (d5/puzzle1 (slurp "./day5-input.txt")))
   (println "Day 5 puzzle 2:" (d5/puzzle2 (slurp "./day5-input.txt")))
+  (println "Day 6 puzzle 1:" (d6/puzzle1 (slurp "./day6-input.txt")))
+  (println "Day 6 puzzle 2:" (d6/puzzle2 (slurp "./day6-input.txt")))
 )
