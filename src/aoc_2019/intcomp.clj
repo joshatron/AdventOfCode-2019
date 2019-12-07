@@ -1,4 +1,5 @@
-(ns aoc-2019.intcomp)
+(ns aoc-2019.intcomp
+  (:require [clojure.string :as str]))
 
 (defn- getAddressValue
   [program address]
@@ -83,3 +84,7 @@
                                                      (+ address 3)))
       (= (:op op) 7) (recur (processLessThan program address (:first op) (:second op)) inputs outputs (+ address 4))
       (= (:op op) 8) (recur (processEqual program address (:first op) (:second op)) inputs outputs (+ address 4)))))
+
+(defn stringToProgram
+  [str]
+  (mapv #(Integer. %) (str/split str #",")))

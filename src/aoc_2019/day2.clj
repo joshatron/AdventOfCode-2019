@@ -1,6 +1,5 @@
 (ns aoc-2019.day2
-  (:require [clojure.string :as str]
-            [aoc-2019.intcomp :as ic]))
+  (:require [aoc-2019.intcomp :as ic]))
 
 (defn- processInputs
   [program input1 input2]
@@ -8,7 +7,7 @@
 
 (defn puzzle1
   [input]
-  (processInputs (mapv #(Integer. %) (str/split input #",")) 12 2))
+  (processInputs (ic/stringToProgram input) 12 2))
 
 (defn- recurseInputs
   [program input1 input2]
@@ -21,4 +20,4 @@
 
 (defn puzzle2
   [input]
-  (recurseInputs (mapv #(Integer. %) (str/split input #",")) 0 0))
+  (recurseInputs (ic/stringToProgram input) 0 0))
