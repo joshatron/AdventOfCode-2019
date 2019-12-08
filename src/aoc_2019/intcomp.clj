@@ -85,6 +85,26 @@
       (= (:op op) 7) (recur (processLessThan program address (:first op) (:second op)) inputs outputs (+ address 4))
       (= (:op op) 8) (recur (processEqual program address (:first op) (:second op)) inputs outputs (+ address 4)))))
 
+(defn processProgramTillHaltOrInput
+  [program inputs outputs address]
+  (let [op (parseOp (get program address))]
+    (cond
+      (= (:op op) 99) {:program program :output outputs :done true :address address}
+      (= (:op op) 1) (recur (processAdd program address (:first op) (:second op)) inputs outputs (+ address 4))
+      (= (:op op) 2) (recur (processMultiply program address (:first op) (:second op)) inputs outputs (+ address 4))
+      (= (:op op) 3) (if (empty? inputs)
+                       {:program program :output outputs :done false :address address}
+                       (recur (processGetInput program address (first inputs)) (rest inputs) outputs (+ address 2)))
+      (= (:op op) 4) (recur program inputs (conj outputs (getAddressOrValue program (+ address 1) (:first op))) (+ address 2))
+      (= (:op op) 5) (recur program inputs outputs (if (not= (getAddressOrValue program (+ address 1) (:first op)) 0)
+                                                     (getAddressOrValue program (+ address 2) (:second op))
+                                                     (+ address 3)))
+      (= (:op op) 6) (recur program inputs outputs (if (= (getAddressOrValue program (+ address 1) (:first op)) 0)
+                                                     (getAddressOrValue program (+ address 2) (:second op))
+                                                     (+ address 3)))
+      (= (:op op) 7) (recur (processLessThan program address (:first op) (:second op)) inputs outputs (+ address 4))
+      (= (:op op) 8) (recur (processEqual program address (:first op) (:second op)) inputs outputs (+ address 4)))))
+
 (defn stringToProgram
   [str]
   (mapv #(Integer. %) (str/split str #",")))
