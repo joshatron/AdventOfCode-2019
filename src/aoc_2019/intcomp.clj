@@ -1,110 +1,136 @@
 (ns aoc-2019.intcomp
   (:require [clojure.string :as str]))
 
-(defn- getAddressValue
-  [program address]
-  (get program (get program address)))
+(defn- get-address
+  [program address relative-base type]
+  (case type
+    0 (get program address)
+    1 address
+    2 (+ relative-base (get program address))))
 
-(defn- getAddressOrValue
-  [program address type]
-  (if type
-    (get program address)
-    (getAddressValue program address)))
+(defn- get-value
+  [program address relative-base type]
+  (get program (get-address program address relative-base type)))
 
-(defn- processTwoOperatorsToResult
-  [program op startAddress firstType secondType]
-  (let [firstAddress (+ startAddress 1)
-        secondAddress (+ startAddress 2)
-        resultAddress (+ startAddress 3)]
-    (assoc program
-      (get program resultAddress)
-      (op (getAddressOrValue program firstAddress firstType) (getAddressOrValue program secondAddress secondType)))))
+(defn- process-add
+  [program first second result-address]
+  (assoc program result-address (+ first second)))
 
-(defn- processAdd
-  [program startAddress firstType secondType]
-  (processTwoOperatorsToResult program + startAddress firstType secondType))
+(defn- process-multiply
+  [program first second result-address]
+  (assoc program result-address (* first second)))
 
-(defn- processMultiply
-  [program startAddress firstType secondType]
-  (processTwoOperatorsToResult program * startAddress firstType secondType))
+(defn- process-get-input
+  [program address input]
+  (assoc program address input))
 
-(defn- processGetInput
-  [program startAddress input]
-  (assoc program
-    (get program (+ startAddress 1))
-    input))
+(defn- process-less-than
+  [program first second result-address]
+    (assoc program result-address (if (< first second) 1 0)))
 
-(defn- processLessThan
-  [program startAddress firstType secondType]
-    (assoc program
-      (get program (+ startAddress 3))
-      (if (< (getAddressOrValue program (+ startAddress 1) firstType) (getAddressOrValue program (+ startAddress 2) secondType))
-        1
-        0)))
+(defn- process-equal
+  [program first second result-address]
+  (assoc program result-address (if (= first second) 1 0)))
 
-(defn- processEqual
-  [program startAddress firstType secondType]
-  (assoc program
-    (get program (+ startAddress 3))
-    (if (= (getAddressOrValue program (+ startAddress 1) firstType) (getAddressOrValue program (+ startAddress 2) secondType))
-      1
-      0)))
-
-(defn getFinalProgramState
-  [program address]
-  (let [op (get program address)]
-    (cond
-      (= op 99) program
-      (= op 1) (recur (processAdd program address false false) (+ address 4))
-      (= op 2) (recur (processMultiply program address false false) (+ address 4)))))
-
-(defn- parseOp
+(defn- parse-op
   [op]
-  (let [opStr (str "0000" op)
-        opCode (subs opStr (- (count opStr) 2))
-        parameterModes (subs opStr 0 (- (count opStr) 2))]
-    {:op (Integer. opCode)
-     :first (and (> (count parameterModes) 0) (= (subs parameterModes (- (count parameterModes) 1)) "1"))
-     :second (and (> (count parameterModes) 1) (= (subs parameterModes (- (count parameterModes) 2) (- (count parameterModes) 1)) "1"))}))
+  (let [op-str (str "0000" op)
+        op-code (subs op-str (- (count op-str) 2))
+        parameter-modes (subs op-str 0 (- (count op-str) 2))]
+    {:op (Integer. op-code)
+     :first (and (> (count parameter-modes) 0) (Integer. (subs parameter-modes (- (count parameter-modes) 1))))
+     :second (and (> (count parameter-modes) 1) (Integer. (subs parameter-modes (- (count parameter-modes) 2) (- (count parameter-modes) 1))))
+     :third (and (> (count parameter-modes) 2) (Integer. (subs parameter-modes (- (count parameter-modes) 3) (- (count parameter-modes) 2))))}))
 
-(defn getProgramOutput
-  [program inputs outputs address]
-  (let [op (parseOp (get program address))]
-    (cond
-      (= (:op op) 99) outputs
-      (= (:op op) 1) (recur (processAdd program address (:first op) (:second op)) inputs outputs (+ address 4))
-      (= (:op op) 2) (recur (processMultiply program address (:first op) (:second op)) inputs outputs (+ address 4))
-      (= (:op op) 3) (recur (processGetInput program address (first inputs)) (rest inputs) outputs (+ address 2))
-      (= (:op op) 4) (recur program inputs (conj outputs (getAddressOrValue program (+ address 1) (:first op))) (+ address 2))
-      (= (:op op) 5) (recur program inputs outputs (if (not= (getAddressOrValue program (+ address 1) (:first op)) 0)
-                                                     (getAddressOrValue program (+ address 2) (:second op))
-                                                     (+ address 3)))
-      (= (:op op) 6) (recur program inputs outputs (if (= (getAddressOrValue program (+ address 1) (:first op)) 0)
-                                                     (getAddressOrValue program (+ address 2) (:second op))
-                                                     (+ address 3)))
-      (= (:op op) 7) (recur (processLessThan program address (:first op) (:second op)) inputs outputs (+ address 4))
-      (= (:op op) 8) (recur (processEqual program address (:first op) (:second op)) inputs outputs (+ address 4)))))
+(defn process-program-till-halt-or-input
+  [program inputs outputs address relative-base]
+  (let [op (parse-op (get program address))]
+    (case (:op op)
+      ;Add
+      1 (recur (process-add program
+                            (get-value program (inc address) relative-base (:first op))
+                            (get-value program (+ address 2) relative-base (:second op))
+                            (get-address program (+ address 3) relative-base (:third op)))
+               inputs
+               outputs
+               (+ address 4)
+               relative-base)
 
-(defn processProgramTillHaltOrInput
-  [program inputs outputs address]
-  (let [op (parseOp (get program address))]
-    (cond
-      (= (:op op) 99) {:program program :output outputs :done true :address address}
-      (= (:op op) 1) (recur (processAdd program address (:first op) (:second op)) inputs outputs (+ address 4))
-      (= (:op op) 2) (recur (processMultiply program address (:first op) (:second op)) inputs outputs (+ address 4))
-      (= (:op op) 3) (if (empty? inputs)
-                       {:program program :output outputs :done false :address address}
-                       (recur (processGetInput program address (first inputs)) (rest inputs) outputs (+ address 2)))
-      (= (:op op) 4) (recur program inputs (conj outputs (getAddressOrValue program (+ address 1) (:first op))) (+ address 2))
-      (= (:op op) 5) (recur program inputs outputs (if (not= (getAddressOrValue program (+ address 1) (:first op)) 0)
-                                                     (getAddressOrValue program (+ address 2) (:second op))
-                                                     (+ address 3)))
-      (= (:op op) 6) (recur program inputs outputs (if (= (getAddressOrValue program (+ address 1) (:first op)) 0)
-                                                     (getAddressOrValue program (+ address 2) (:second op))
-                                                     (+ address 3)))
-      (= (:op op) 7) (recur (processLessThan program address (:first op) (:second op)) inputs outputs (+ address 4))
-      (= (:op op) 8) (recur (processEqual program address (:first op) (:second op)) inputs outputs (+ address 4)))))
+      ;Multiply
+      2 (recur (process-multiply program
+                                 (get-value program (inc address) relative-base (:first op))
+                                 (get-value program (+ address 2) relative-base (:second op))
+                                 (get-address program (+ address 3) relative-base (:third op)))
+               inputs
+               outputs
+               (+ address 4)
+               relative-base)
 
-(defn stringToProgram
+      ;Take input
+      3 (if (seq inputs)
+          (recur (process-get-input program
+                                    (get-address program (inc address) relative-base (:first op))
+                                    (first inputs))
+                 (rest inputs)
+                 outputs
+                 (+ address 2)
+                 relative-base)
+          {:program program :output outputs :done false :address address :relative-base relative-base})
+
+      ;Add output
+      4 (recur program
+               inputs
+               (conj outputs (get-value program (inc address) relative-base (:first op)))
+               (+ address 2)
+               relative-base)
+
+      ;Jump if parameter != 0
+      5 (recur program
+               inputs
+               outputs
+               (if (not= (get-value program (+ address 1) relative-base (:first op)) 0)
+                 (get-value program (+ address 2) relative-base (:second op))
+                 (+ address 3))
+               relative-base)
+
+      ;Jump if parameter = 0
+      6 (recur program
+               inputs
+               outputs
+               (if (= (get-value program (+ address 1) relative-base (:first op)) 0)
+                 (get-value program (+ address 2) relative-base (:second op))
+                 (+ address 3))
+               relative-base)
+
+      ;If A < B, store 1, else store 0
+      7 (recur (process-less-than program
+                                  (get-value program (inc address) relative-base (:first op))
+                                  (get-value program (+ address 2) relative-base (:second op))
+                                  (get-address program (+ address 3) relative-base (:third op)))
+               inputs
+               outputs
+               (+ address 4)
+               relative-base)
+
+      ;If A = B, store 1, else store 0
+      8 (recur (process-equal program
+                              (get-value program (inc address) relative-base (:first op))
+                              (get-value program (+ address 2) relative-base (:second op))
+                              (get-address program (+ address 3) relative-base (:third op)))
+               inputs
+               outputs
+               (+ address 4)
+               relative-base)
+
+      ;Move relative base
+      9 (recur program
+               inputs
+               outputs
+               (+ address 2)
+               (+ relative-base (get-value program (inc address) relative-base (:first op))))
+
+      99 {:program program :output outputs :done true :address address :relative-base relative-base})))
+
+(defn string-to-program
   [str]
-  (mapv #(Integer. %) (str/split str #",")))
+  (apply conj (mapv #(Integer. %) (str/split str #",")) (vec (repeat 10000 0))))

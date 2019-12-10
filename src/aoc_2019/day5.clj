@@ -3,8 +3,8 @@
 
 (defn puzzle1
   [input]
-  (last (ic/getProgramOutput (ic/stringToProgram input) [1] [] 0)))
+  (last (:output (ic/process-program-till-halt-or-input (ic/string-to-program input) [1] [] 0 0))))
 
 (defn puzzle2
   [input]
-  (first (ic/getProgramOutput (ic/stringToProgram input) [5] [] 0)))
+  (first (:output (ic/process-program-till-halt-or-input (ic/string-to-program input) [5] [] 0 0))))

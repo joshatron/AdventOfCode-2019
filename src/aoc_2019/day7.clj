@@ -18,11 +18,11 @@
   [program sequence input]
   (if (empty? sequence)
     input
-    (recur program (rest sequence) (first (ic/getProgramOutput program [(first sequence) input] [] 0)))))
+    (recur program (rest sequence) (first (:output (ic/process-program-till-halt-or-input program [(first sequence) input] [] 0 0))))))
 
 (defn puzzle1
   [input]
-  (let [program (ic/stringToProgram input)
+  (let [program (ic/string-to-program input)
         permutations (getPermutations 0 5)]
     (apply max (map #(runProgramSequence program % 0) permutations))))
 
@@ -30,15 +30,15 @@
   [program config amps input]
   (if (empty? config)
     amps
-    (let [amp (ic/processProgramTillHaltOrInput program [(first config) input] [] 0)]
+    (let [amp (ic/process-program-till-halt-or-input program [(first config) input] [] 0 0)]
       (initializeAmps program (rest config) (conj amps amp) (get (:output amp) 0)))))
 
 (defn- runPassOfAmps
   [amps index]
   (cond
     (= (count amps) index) amps
-    (= index 0) (recur (assoc amps index (ic/processProgramTillHaltOrInput (:program (get amps index)) (:output (last amps)) [] (:address (get amps index)))) (inc index))
-    :else (recur (assoc amps index (ic/processProgramTillHaltOrInput (:program (get amps index)) (:output (get amps (dec index))) [] (:address (get amps index)))) (inc index))
+    (= index 0) (recur (assoc amps index (ic/process-program-till-halt-or-input (:program (get amps index)) (:output (last amps)) [] (:address (get amps index)) (:relative-base (get amps index)))) (inc index))
+    :else (recur (assoc amps index (ic/process-program-till-halt-or-input (:program (get amps index)) (:output (get amps (dec index))) [] (:address (get amps index)) (:relative-base (get amps index)))) (inc index))
     ))
 
 (defn- runAmps
@@ -50,6 +50,6 @@
 (defn puzzle2
   [input]
   (let [configs (getPermutations 5 5)
-        program (ic/stringToProgram input)]
+        program (ic/string-to-program input)]
     (apply max (map #(runAmps program (initializeAmps program % [] 0)) configs))))
 
