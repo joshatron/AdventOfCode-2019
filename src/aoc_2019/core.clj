@@ -9,7 +9,8 @@
             [aoc-2019.day8 :as d8]
             [aoc-2019.day9 :as d9]
             [aoc-2019.day10 :as d10]
-            [aoc-2019.day11 :as d11])
+            [aoc-2019.day11 :as d11]
+            [aoc-2019.day12 :as d12])
   (:gen-class))
 
 (defn -main
@@ -38,4 +39,5 @@
   (println "Day 10 puzzle 2:" (d10/puzzle2 (slurp "./day10-input.txt")))
   (println "Day 11 puzzle 1:" (d11/puzzle1 (slurp "./day11-input.txt")))
   (println "Day 11 puzzle 2:")
-  (d11/puzzle2 (slurp "./day11-input.txt")))
+  (d11/puzzle2 (slurp "./day11-input.txt"))
+  (println "Day 12 puzzle 1:" (d12/puzzle1 (slurp "./day12-input.txt"))))
