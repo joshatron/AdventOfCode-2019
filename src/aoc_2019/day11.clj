@@ -23,16 +23,18 @@
 
 (defn- get-color-of-loc [locations location]
   (let [matching (find-location locations location)]
-    (if (nil? matching) 0 (:color matching))))
+    (if (nil? matching)
+      0
+      (:color matching))))
 
 (defn- add-location [locations location paint-color]
-  (if (not= (get-color-of-loc locations location) paint-color)
-    (conj (filter #(or (not= (:x location) (:x %)) (not= (:y location) (:y %))) locations)
-          {:x (:x location) :y (:y location) :color paint-color})
-    locations))
+  (conj (filter #(or (not= (:x location) (:x %)) (not= (:y location) (:y %))) locations)
+        {:x (:x location) :y (:y location) :color paint-color}))
 
 (defn- update-painted [locations location paint-color newly-painted]
-  (if (and (not= (get-color-of-loc locations location) paint-color) (empty? (filter #(and (= (:x location) (:x %)) (= (:y location) (:y %))) locations)))
+  (if (and (not=
+             (get-color-of-loc locations location)
+             paint-color) (empty? (filter #(and (= (:x location) (:x %)) (= (:y location) (:y %))) locations)))
     (inc newly-painted)
     newly-painted))
 
@@ -41,18 +43,18 @@
 ;3   1
 ;  2
 (defn- get-locations-painted
-  ([program]
-   (get-locations-painted (ic/process-program-till-halt-or-input program [0]) {:x 0 :y 0 :dir 0} [] 0))
+  ([program initial]
+   (get-locations-painted (ic/process-program-till-halt-or-input program initial) {:x 0 :y 0 :dir 0} [] 0))
   ([program robot-state locations newly-painted]
    (if (:done program)
-     (update-painted locations robot-state (first (:output program)) newly-painted)
-     (recur (ic/process-program-till-halt-or-input program [(get-color-of-loc locations robot-state)])
+     locations
+     (recur (ic/process-program-till-halt-or-input program [(get-color-of-loc locations (move-robot robot-state (last (:output program))))])
             (move-robot robot-state (last (:output program)))
             (add-location locations robot-state (first (:output program)))
             (update-painted locations robot-state (first (:output program)) newly-painted)))))
 
 (defn puzzle1 [input]
-  (get-locations-painted (ic/string-to-program input)))
+  (count (get-locations-painted (ic/string-to-program input) [0])))
 
 (defn- print-locs [locations min-x min-y max-x max-y x y]
   (cond
@@ -64,19 +66,8 @@
             (print (if (= (get-color-of-loc locations {:x x :y y}) 1) "#" " "))
             (recur locations min-x min-y max-x max-y (inc x) y))))
 
-(defn- get-picture-locations
-  ([program]
-   (get-picture-locations (ic/process-program-till-halt-or-input program [1]) {:x 0 :y 0 :dir 0} [] 0))
-  ([program robot-state locations newly-painted]
-   (if (:done program)
-     locations
-     (recur (ic/process-program-till-halt-or-input program [(get-color-of-loc locations robot-state)])
-            (move-robot robot-state (last (:output program)))
-            (add-location locations robot-state (first (:output program)))
-            (update-painted locations robot-state (first (:output program)) newly-painted)))))
-
 (defn puzzle2 [input]
-  (let [locations (get-picture-locations (ic/string-to-program input))
+  (let [locations (get-locations-painted (ic/string-to-program input) [1])
         min-x (apply min (map #(:x %) locations))
         max-x (apply max (map #(:x %) locations))
         min-y (apply min (map #(:y %) locations))
