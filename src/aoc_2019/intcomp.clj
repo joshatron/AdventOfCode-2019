@@ -43,7 +43,11 @@
      :third (and (> (count parameter-modes) 2) (Integer. (subs parameter-modes (- (count parameter-modes) 3) (- (count parameter-modes) 2))))}))
 
 (defn process-program-till-halt-or-input
-  [program inputs outputs address relative-base]
+  ([program inputs]
+   (if (map? program)
+     (process-program-till-halt-or-input (:program program) inputs [] (:address program) (:relative-base program))
+     (process-program-till-halt-or-input program inputs [] 0 0)))
+  ([program inputs outputs address relative-base]
   (let [op (parse-op (get program address))]
     (case (:op op)
       ;Add
@@ -129,8 +133,8 @@
                (+ address 2)
                (+ relative-base (get-value program (inc address) relative-base (:first op))))
 
-      99 {:program program :output outputs :done true :address address :relative-base relative-base})))
+      99 {:program program :output outputs :done true :address address :relative-base relative-base}))))
 
 (defn string-to-program
   [str]
-  (apply conj (mapv #(Integer. %) (str/split str #",")) (vec (repeat 10000 0))))
+  (apply conj (mapv #(Long. %) (str/split str #",")) (vec (repeat 10000 0))))
