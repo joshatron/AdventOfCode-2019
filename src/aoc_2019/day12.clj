@@ -1,5 +1,6 @@
 (ns aoc-2019.day12
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [clojure.math.numeric-tower :as math]))
 
 (defn- to-position-map [components]
   {:x (first components) :y (first (rest components)) :z (first (rest (rest components)))})
@@ -42,7 +43,7 @@
     {:vel vel
      :pos (update-to-velocity pos vel)}))
 
-(defn- update-positions [state] (map update-position state))
+(defn- update-positions [state] (mapv update-position state))
 
 (defn- walk-step [state] (update-positions (update-velocities state)))
 
@@ -59,3 +60,33 @@
 
 (defn puzzle1 [input]
   (get-total-energy (walk-steps (get-initial-states input) 1000)))
+
+(defn- update-position-one-axis [moon] (assoc moon :pos (+ (:vel moon) (:pos moon))))
+
+(defn- update-positions-one-axis [state] (mapv update-position-one-axis state))
+
+(defn- update-velocity-one-axis [state moon]
+  (reduce #(assoc %1 :vel (update-component (:vel %1) (:pos %1) (:pos %2))) moon state))
+
+(defn- update-velocities-one-axis [state] (mapv #(update-velocity-one-axis state %) state))
+
+(defn- walk-step-one-axis [state] (update-positions-one-axis (update-velocities-one-axis state)))
+
+(defn- convert-state-to-axis [state axis]
+  (mapv (fn [m] {:vel (axis (:vel m)) :pos (axis (:pos m))}) state))
+
+(defn- get-period-for-axis
+  ([initial-state axis] (get-period-for-axis (convert-state-to-axis initial-state axis)
+                                             (walk-step-one-axis (convert-state-to-axis initial-state axis))
+                                             1))
+  ([initial-state current-state steps]
+   (if (= initial-state current-state)
+     steps
+     (recur initial-state (walk-step-one-axis current-state) (inc steps)))))
+
+(defn puzzle2 [input]
+  (let [initial-state (get-initial-states input)
+        x-steps (get-period-for-axis initial-state :x)
+        y-steps (get-period-for-axis initial-state :y)
+        z-steps (get-period-for-axis initial-state :z)]
+    (math/lcm (math/lcm x-steps y-steps) z-steps)))
