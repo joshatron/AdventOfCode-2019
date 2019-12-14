@@ -43,4 +43,5 @@
   (d11/puzzle2 (slurp "./day11-input.txt"))
   (println "Day 12 puzzle 1:" (d12/puzzle1 (slurp "./day12-input.txt")))
   (println "Day 12 puzzle 2:" (d12/puzzle2 (slurp "./day12-input.txt")))
-  (println "Day 13 puzzle 1:" (d13/puzzle1 (slurp "./day13-input.txt"))))
+  (println "Day 13 puzzle 1:" (d13/puzzle1 (slurp "./day13-input.txt")))
+  (println "Day 13 puzzle 2:" (d13/puzzle2 (slurp "./day13-input.txt"))))
