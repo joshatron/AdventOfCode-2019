@@ -29,7 +29,38 @@
       :else (some #(depth-first-find-location % (conj visited (:loc state))) next)
       ))))
 
-(defn puzzle1 [input]
-  (depth-first-find-location input))
+(defn- get-smallest [list]
+  (reduce #(if (< (:f %1) (:f %2)) %1 %2) list))
+
+(defn- get-manhattan-distance [p1 p2]
+  (+ (Math/abs (- (:x p1) (:x p2))) (Math/abs (- (:y p1) (:y p2)))))
+
+(defn- set-vars [state parent destination]
+  (assoc state :g (inc (:g parent)) :f (+ (get-manhattan-distance (:loc state) destination) (inc (:g parent)))))
+
+(defn- smaller-f-in-list [state list]
+  (let [matching (some #(if (= (:loc state) (:loc %)) %) list)]
+    (if (nil? matching)
+      false
+      (> (:f state) (:f matching)))))
+
+(defn- get-add-to-open-astar [open closed parent destination]
+  (->> (get-possible parent [])
+       (map #(set-vars % parent destination))
+       (remove #(smaller-f-in-list % open))
+       (remove #(smaller-f-in-list % closed))))
+
+(defn- get-distance-astar
+  ([input destination] (get-distance-astar [{:f 0 :g 0 :loc {:x 0 :y 0} :program (ic/string-to-program input)}] [] destination))
+  ([open closed destination]
+   (let [q (get-smallest open)]
+     (if (= (:loc q) destination)
+       (:g q)
+       (recur (apply conj (remove #{q} open) (get-add-to-open-astar open closed q destination))
+              (conj closed q)
+              destination))
+     )))
+
+(defn puzzle1 [input] (get-distance-astar input (:loc (depth-first-find-location input))))
 
 (defn puzzle2 [input])
