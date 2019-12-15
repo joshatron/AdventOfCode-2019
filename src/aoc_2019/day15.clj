@@ -63,4 +63,17 @@
 
 (defn puzzle1 [input] (get-distance-astar input (:loc (depth-first-find-location input))))
 
-(defn puzzle2 [input])
+(defn- create-new-frontier [frontier visited]
+  (->> frontier
+       (map #(get-possible % visited))
+       (flatten)))
+
+(defn- spread-oxygen [frontier visited time]
+  (if (empty? frontier)
+    (dec time)
+    (recur (create-new-frontier frontier visited)
+           (apply conj visited (map :loc frontier))
+           (inc time))))
+
+(defn puzzle2 [input]
+  (spread-oxygen [(depth-first-find-location input)] [] 0))
