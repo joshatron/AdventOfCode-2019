@@ -13,7 +13,17 @@
             [aoc-2019.day12 :as d12]
             [aoc-2019.day13 :as d13]
             [aoc-2019.day14 :as d14]
-            [aoc-2019.day15 :as d15])
+            [aoc-2019.day15 :as d15]
+            [aoc-2019.day16 :as d16]
+            [aoc-2019.day17 :as d17]
+            [aoc-2019.day18 :as d18]
+            [aoc-2019.day19 :as d19]
+            [aoc-2019.day20 :as d20]
+            [aoc-2019.day21 :as d21]
+            [aoc-2019.day22 :as d22]
+            [aoc-2019.day23 :as d23]
+            [aoc-2019.day24 :as d24]
+            [aoc-2019.day25 :as d25])
   (:gen-class))
 
 (defn -main
@@ -50,4 +60,24 @@
   (println "Day 14 puzzle 1:" (d14/puzzle1 (slurp "./day14-input.txt")))
   (println "Day 14 puzzle 2:" (d14/puzzle2 (slurp "./day14-input.txt")))
   (println "Day 15 puzzle 1:" (d15/puzzle1 (slurp "./day15-input.txt")))
-  (println "Day 15 puzzle 2:" (d15/puzzle2 (slurp "./day15-input.txt"))))
+  (println "Day 15 puzzle 2:" (d15/puzzle2 (slurp "./day15-input.txt")))
+  (println "Day 16 puzzle 1:" (d16/puzzle1 (slurp "./day16-input.txt")))
+  (println "Day 16 puzzle 2:" (d16/puzzle2 (slurp "./day16-input.txt")))
+  (println "Day 17 puzzle 1:" (d17/puzzle1 (slurp "./day17-input.txt")))
+  (println "Day 17 puzzle 2:" (d17/puzzle2 (slurp "./day17-input.txt")))
+  (println "Day 18 puzzle 1:" (d18/puzzle1 (slurp "./day18-input.txt")))
+  (println "Day 18 puzzle 2:" (d18/puzzle2 (slurp "./day18-input.txt")))
+  (println "Day 19 puzzle 1:" (d19/puzzle1 (slurp "./day19-input.txt")))
+  (println "Day 19 puzzle 2:" (d19/puzzle2 (slurp "./day19-input.txt")))
+  (println "Day 20 puzzle 1:" (d20/puzzle1 (slurp "./day20-input.txt")))
+  (println "Day 20 puzzle 2:" (d20/puzzle2 (slurp "./day20-input.txt")))
+  (println "Day 21 puzzle 1:" (d21/puzzle1 (slurp "./day21-input.txt")))
+  (println "Day 21 puzzle 2:" (d21/puzzle2 (slurp "./day21-input.txt")))
+  (println "Day 22 puzzle 1:" (d22/puzzle1 (slurp "./day22-input.txt")))
+  (println "Day 22 puzzle 2:" (d22/puzzle2 (slurp "./day22-input.txt")))
+  (println "Day 23 puzzle 1:" (d23/puzzle1 (slurp "./day23-input.txt")))
+  (println "Day 23 puzzle 2:" (d23/puzzle2 (slurp "./day23-input.txt")))
+  (println "Day 24 puzzle 1:" (d24/puzzle1 (slurp "./day24-input.txt")))
+  (println "Day 24 puzzle 2:" (d24/puzzle2 (slurp "./day24-input.txt")))
+  (println "Day 25 puzzle 1:" (d25/puzzle1 (slurp "./day25-input.txt")))
+  (println "Day 25 puzzle 2:" (d25/puzzle2 (slurp "./day25-input.txt"))))
