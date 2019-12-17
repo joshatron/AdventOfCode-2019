@@ -27,7 +27,6 @@
   (:gen-class))
 
 (defn -main
-  "I don't do a whole lot ... yet."
   [& args]
   (println "Day 1 puzzle 1:" (d1/puzzle1 (slurp "./day1-input.txt")))
   (println "Day 1 puzzle 2:" (d1/puzzle2 (slurp "./day1-input.txt")))
