@@ -56,15 +56,14 @@
 (defn puzzle1 [input]
   (count (get-locations-painted (ic/string-to-program input) [0])))
 
-(defn- print-locs [locations min-x min-y max-x max-y x y]
+(defn- draw-locs [locations min-x min-y max-x max-y x y string]
   (cond
-    (< y min-y) nil
+    (< y min-y) string
     (> x max-x) (do
-                  (println)
-                  (recur locations min-x min-y max-x max-y min-x (dec y)))
+                  (recur locations min-x min-y max-x max-y min-x (dec y) (str string "\n")))
     :else (do
-            (print (if (= (get-color-of-loc locations {:x x :y y}) 1) "#" " "))
-            (recur locations min-x min-y max-x max-y (inc x) y))))
+            (recur locations min-x min-y max-x max-y (inc x) y
+                   (str string (if (= (get-color-of-loc locations {:x x :y y}) 1) "#" " "))))))
 
 (defn puzzle2 [input]
   (let [locations (get-locations-painted (ic/string-to-program input) [1])
@@ -72,4 +71,4 @@
         max-x (apply max (map #(:x %) locations))
         min-y (apply min (map #(:y %) locations))
         max-y (apply max (map #(:y %) locations))]
-    (print-locs locations min-x min-y max-x max-y min-x max-y)))
+    (str "\n" (draw-locs locations min-x min-y max-x max-y min-x max-y ""))))

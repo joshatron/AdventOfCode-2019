@@ -58,4 +58,4 @@
 (defn puzzle2
   [input]
   (let [layers (splitIntoLayers input [] 25 6)]
-    (createImageStrFromLayers layers 25 6)))
+    (str "\n" (createImageStrFromLayers layers 25 6))))
