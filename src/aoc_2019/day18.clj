@@ -70,7 +70,7 @@
        ))
 
 (defn- find-all-keys
-  ([dungeon] (find-all-keys dungeon [(assoc (find-start dungeon) :passed [])] [] [] []))
+  ([dungeon gone] (find-all-keys dungeon [(assoc (find-start dungeon) :passed [])] [] gone []))
   ([dungeon frontier visited gone keys]
   (if (empty? frontier)
     keys
@@ -93,6 +93,12 @@
       (->> next-possible
            (map #(get-key-options all-keys (conj keys %) (conj gone % (Character/toUpperCase %))))
            (reduce #(apply conj %1 %2))))))
+
+(defn- get-next-keys [all-keys] (map :key (filter #(empty? (:passed %)) all-keys)))
+
+(defn- get-blocked-by-key [all-keys key] (filter #(some #{(Character/toUpperCase key)} (:passed %)) all-keys))
+
+(defn- get-blocking-behind-key [all-keys key] (filter #(and (some (fn [c] (Character/isUpperCase c)) (:passed %)) (some #{key} (:passed %))) all-keys))
 
 (defn- get-smallest [list]
   (reduce #(if (< (:f %1) (:f %2)) %1 %2) list))
@@ -127,7 +133,30 @@
               (conj closed q)
               destination)))))
 
-(defn- create-distance-map [dungeon all-keys])
+(defn- update-distance [dungeon current key]
+  {:loc (find-key dungeon key)
+   :dist (+ (:dist current) (get-distance-astar dungeon (:loc current) (find-key dungeon key)))})
+
+(defn- get-distances [dungeon keys]
+  (let [current {:loc (find-start dungeon) :dist 0}]
+    (reduce #(update-distance dungeon %1 %2) current keys)))
+
+(defn- pick-next-key [dungeon all-keys last-loc]
+  (let [next-keys (get-next-keys all-keys)]
+    (reduce #(cond
+               (< (count (get-blocking-behind-key all-keys %1)) (count (get-blocking-behind-key all-keys %2))) %1
+               (> (count (get-blocking-behind-key all-keys %1)) (count (get-blocking-behind-key all-keys %2))) %2
+               (> (count (get-blocked-by-key all-keys %1)) (count (get-blocked-by-key all-keys %2))) %1
+               (< (count (get-blocked-by-key all-keys %1)) (count (get-blocked-by-key all-keys %2))) %2
+               :else %1)
+            next-keys)))
+
+(defn- get-key-pickup-order [dungeon keys found]
+  (let [keys-left (find-all-keys dungeon found)]
+    (if (empty? keys-left)
+      keys
+      (let [next-key (pick-next-key dungeon keys-left (find-key dungeon (last keys)))]
+        (recur dungeon (conj keys next-key) (conj found next-key (Character/toUpperCase next-key)))))))
 
 (defn puzzle1 [input] (count (get-key-options (find-all-keys (read-dungeon input) []) [] [])))
 
