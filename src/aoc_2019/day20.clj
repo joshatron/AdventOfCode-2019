@@ -109,4 +109,78 @@
 
 (defn puzzle1 [input] (find-end-bfs (read-maze input)))
 
-(defn puzzle2 [input] )
+(defn- find-recursive-portal [maze code]
+  (->> (find-letter maze (first code))
+       (map #(get-endpoint maze % (second code)))
+       (remove nil?)))
+
+(defn- get-recursive-portal-from-loc [maze original loc]
+  (cond
+    (< (:y loc) (:y original)) (find-recursive-portal maze [(get-at-loc maze (move-loc loc 0)) (get-at-loc maze loc)])
+    (> (:y loc) (:y original)) (find-recursive-portal maze [(get-at-loc maze loc) (get-at-loc maze (move-loc loc 2))])
+    (< (:x loc) (:x original)) (find-recursive-portal maze [(get-at-loc maze (move-loc loc 3)) (get-at-loc maze loc)])
+    (> (:x loc) (:x original)) (find-recursive-portal maze [(get-at-loc maze loc) (get-at-loc maze (move-loc loc 1))])))
+
+(defn- follow-recursive-portal [maze original loc]
+  (->> (get-recursive-portal-from-loc maze original loc)
+       (remove #{original})
+       (first)))
+
+(defn- check-for-recursive-portal [maze original loc]
+  (if (= (get-at-loc maze loc) \.)
+    loc
+    (assoc (follow-recursive-portal maze original loc) :level (:level original))))
+
+(defn- get-recursive-visited [visited loc]
+  (let [v (get (get visited (:x loc)) (:y loc))]
+    (if (nil? v) [] v)))
+
+(defn- recursive-visited? [visited loc]
+  (if (empty? (get visited (:x loc)))
+    false
+    (some #{(:level loc)} (get-recursive-visited visited loc))))
+
+(defn- get-recursive-next [maze loc visited]
+  (->> (iterate inc 0)
+       (take 4)
+       (map #(move-loc loc %))
+       (filter #(legal-loc maze %))
+       (map #(check-for-recursive-portal maze loc %))
+       (remove nil?)
+       (remove #(recursive-visited? visited %))))
+
+(defn- expand-recursive-frontier [maze frontier visited]
+  (set (flatten (map #(get-recursive-next maze % visited) frontier))))
+
+(defn- update-recursive-visited-with-loc [visited loc]
+  (assoc visited (:x loc)
+                 (assoc (get visited (:x loc)) (:y loc)
+                                               (conj (get-recursive-visited visited loc) (:level loc)))))
+
+(defn- update-recursive-visited [visited new-locs]
+  (if (empty? new-locs)
+    visited
+    (recur (update-recursive-visited-with-loc visited (first new-locs)) (rest new-locs))))
+
+(defn- get-start-loc [maze]
+  (-> (find-portal maze [\A \A])
+      (first)
+      (assoc :level 0)))
+
+(defn- get-end-loc [maze]
+  (-> (find-portal maze [\Z \Z])
+      (first)
+      (assoc :level 0)))
+
+(defn- find-recursive-end-bfs
+  ([maze] (find-recursive-end-bfs maze [(get-start-loc maze)] {} 0 (get-end-loc maze)))
+  ([maze frontier visited steps end-location]
+   (if (some #{end-location} frontier)
+     steps
+     (recur maze
+            (expand-recursive-frontier maze frontier visited)
+            (update-recursive-visited visited frontier)
+            (inc steps)
+            end-location))))
+
+(defn puzzle2 [input] (find-recursive-end-bfs (read-maze input)))
