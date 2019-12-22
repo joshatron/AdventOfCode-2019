@@ -86,7 +86,7 @@
        (remove #(visited? visited %))))
 
 (defn- expand-frontier [maze frontier visited]
-  (set (flatten (map #(get-next maze % visited) frontier))))
+  (set (flatten (pmap #(get-next maze % visited) frontier))))
 
 (defn- update-visited-with-loc [visited loc]
   (assoc visited (:x loc) (assoc (get visited (:x loc)) (:y loc) 1)))
@@ -121,24 +121,30 @@
     (< (:x loc) (:x original)) (find-recursive-portal maze [(get-at-loc maze (move-loc loc 3)) (get-at-loc maze loc)])
     (> (:x loc) (:x original)) (find-recursive-portal maze [(get-at-loc maze loc) (get-at-loc maze (move-loc loc 1))])))
 
+(defn- adjust-level [maze portal]
+  (if (or (< (:x portal) 4) (< (:y portal) 4)
+          (> (:x portal) (- (width maze) 5)) (> (:y portal) (- (height maze) 5)))
+    (dec (:level portal))
+    (inc (:level portal))))
+
 (defn- follow-recursive-portal [maze original loc]
   (->> (get-recursive-portal-from-loc maze original loc)
-       (remove #{original})
+       (map #(assoc % :level (adjust-level maze loc)))
+       (remove #(< (:level %) 0))
+       (remove #(and (= (:x original) (:x %)) (= (:y original) (:y %))))
        (first)))
 
 (defn- check-for-recursive-portal [maze original loc]
   (if (= (get-at-loc maze loc) \.)
     loc
-    (assoc (follow-recursive-portal maze original loc) :level (:level original))))
+    (follow-recursive-portal maze original loc)))
 
 (defn- get-recursive-visited [visited loc]
   (let [v (get (get visited (:x loc)) (:y loc))]
     (if (nil? v) [] v)))
 
 (defn- recursive-visited? [visited loc]
-  (if (empty? (get visited (:x loc)))
-    false
-    (some #{(:level loc)} (get-recursive-visited visited loc))))
+  (some #{(:level loc)} (get-recursive-visited visited loc)))
 
 (defn- get-recursive-next [maze loc visited]
   (->> (iterate inc 0)
@@ -150,7 +156,7 @@
        (remove #(recursive-visited? visited %))))
 
 (defn- expand-recursive-frontier [maze frontier visited]
-  (set (flatten (map #(get-recursive-next maze % visited) frontier))))
+  (set (flatten (pmap #(get-recursive-next maze % visited) frontier))))
 
 (defn- update-recursive-visited-with-loc [visited loc]
   (assoc visited (:x loc)
