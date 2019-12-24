@@ -135,15 +135,48 @@
 
 (defn- find-shortest-path-astar
   ([key-combos] (find-shortest-path-astar key-combos [{:f 0 :g 0 :keys #{} :gone #{} :current \@}] []))
+  ([key-combos gone] (find-shortest-path-astar key-combos [{:f 0 :g 0 :keys #{} :gone gone :current \@}] []))
   ([key-combos open closed]
    (let [q (get-smallest open)]
-     ;(println q)
-     (if (= (inc (count (:keys q))) (count key-combos))
+     (if (= (count (:keys q)) (count (get key-combos \@)))
        (:g q)
        (recur key-combos
-              (vec (apply conj (remove #{q} open) (add-to-open open closed q key-combos)))
-              (vec (conj closed q)))))))
+              (apply conj (remove #{q} open) (add-to-open open closed q key-combos))
+              (conj closed q))))))
 
 (defn puzzle1 [input] (find-shortest-path-astar (find-all-key-combos (read-dungeon input))))
 
-(defn puzzle2 [input] )
+(defn- separate-dungeon [dungeon center]
+  (let [above (get dungeon (dec (:y center)))
+        at (get dungeon (:y center))
+        below (get dungeon (inc (:y center)))]
+    (assoc dungeon (dec (:y center)) (assoc above (:x center) \#)
+                   (:y center) (assoc at (dec (:x center)) \# (:x center) \# (inc (:x center)) \#)
+                   (inc (:y center)) (assoc below (:x center) \#))))
+
+(defn- get-new-dungeons [dungeon]
+  (let [center (find-key dungeon \@)
+        new-dungeon (separate-dungeon dungeon center)]
+    (->> [[-1 -1] [-1 1] [1 -1] [1 1]]
+         (map (fn [n] {:x (+ (first n) (:x center))
+                       :y (+ (second n) (:y center))}))
+         (map #(assoc new-dungeon (:y %) (assoc (get new-dungeon (:y %)) (:x %) \@))))))
+
+(defn- get-all-split-key-combos [dungeon]
+  (->> dungeon
+       (get-new-dungeons)
+       (map find-all-key-combos)))
+
+(defn- get-in-other-quadrants [key-combos]
+  (let [all (keys key-combos)
+        in-quadrant (keys (get key-combos \@))
+        difference (remove (set in-quadrant) all)]
+    (set (concat difference (map #(Character/toUpperCase %) difference)))))
+
+(defn- get-all-robots-dist [dungeon]
+  (->> dungeon
+       (get-all-split-key-combos)
+       (map #(find-shortest-path-astar % (get-in-other-quadrants %)))
+       (reduce +)))
+
+(defn puzzle2 [input] (get-all-robots-dist (read-dungeon input)))
