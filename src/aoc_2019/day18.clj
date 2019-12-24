@@ -99,7 +99,7 @@
        (mapv first)))
 
 (defn- find-shortest-path
-  ([key-combos] (find-shortest-path key-combos \@ [] 0))
+  ([key-combos] (find-shortest-path key-combos \@ #{} 0))
   ([key-combos current-key gone dist-travelled]
    (let [next-keys (get-next-possible-keys (get key-combos current-key) gone)]
      (if (empty? next-keys)
@@ -111,6 +111,39 @@
                                       (+ dist-travelled (:steps (get (get key-combos current-key) %)))))
             (apply min))))))
 
-(defn puzzle1 [input] (find-shortest-path (find-all-key-combos (read-dungeon input))))
+(defn- get-smallest [open] (reduce #(if (< (:f %1) (:f %2)) %1 %2) open))
+
+(defn- set-vars [key-combos parent new-one]
+  (let [g (+ (:g parent) (:steps (get (get key-combos (:current parent)) new-one)))]
+  {:keys (conj (:keys parent) new-one)
+   :gone (conj (:gone parent) new-one (Character/toUpperCase new-one))
+   :g g
+   :f (+ g (- (count key-combos) (count (:keys parent))))
+   :current new-one}))
+
+(defn- smaller-f-in-list [state list]
+  (let [matching (some #(if (and (= (:keys state) (:keys %)) (= (:current state) (:current %))) %) list)]
+    (if (nil? matching)
+      false
+      (> (:f state) (:f matching)))))
+
+(defn- add-to-open [open closed q key-combos]
+  (->> (get-next-possible-keys (get key-combos (:current q)) (:gone q))
+       (map #(set-vars key-combos q %))
+       (remove #(smaller-f-in-list % open))
+       (remove #(smaller-f-in-list % closed))))
+
+(defn- find-shortest-path-astar
+  ([key-combos] (find-shortest-path-astar key-combos [{:f 0 :g 0 :keys #{} :gone #{} :current \@}] []))
+  ([key-combos open closed]
+   (let [q (get-smallest open)]
+     ;(println q)
+     (if (= (inc (count (:keys q))) (count key-combos))
+       (:g q)
+       (recur key-combos
+              (vec (apply conj (remove #{q} open) (add-to-open open closed q key-combos)))
+              (vec (conj closed q)))))))
+
+(defn puzzle1 [input] (find-shortest-path-astar (find-all-key-combos (read-dungeon input))))
 
 (defn puzzle2 [input] )
